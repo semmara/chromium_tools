@@ -23,7 +23,6 @@ def FileRead(filename, mode='rU'):
 
 
 def cmd_wrapper(cmd):
-    #rc = subp.Popen(shlex.split("%s%s" % (["", "caffeinate "][platform.system() == "Darwin"], cmd))).wait()
     print("Command:", cmd)
     rc = subp.Popen(shlex.split(cmd)).wait()
     if rc != 0:
@@ -84,7 +83,6 @@ def main():
 
             # clone repo into subfolder
             cmd_wrapper("git -C %s clone --mirror %s" % (subdir, repo))
-            #print("git -C %s clone --mirror %s" % (subdir, repo))
     finally:
         os.chdir(old_cwd)
 
