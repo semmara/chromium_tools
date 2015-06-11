@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 # pylint: disable=C0301
 
+"""
+Script to mirror chromium sources.
+No need to modify depot_tools.
+Only run the following commands to modify you global .gitconfig file:
+$ git config --global "url.<path/to/mirrors/>.insteadOf" "https://chromium.googlesource.com/"
+$ git config --global --add "url.<path/to/mirrors/>.insteadOf" "https://chromium.googlesource.com/a/"
+Replace '<path/to/mirrors/>' with your path.
+"""
+
 from __future__ import print_function
 import os
 import argparse
@@ -13,7 +22,7 @@ __author__ = "Rainer Semma"
 
 
 def FileRead(filename, mode='rU'):
-    "Source: http://src.chromium.org/svn/trunk/tools/depot_tools/gclient_utils.py"
+    """Source: http://src.chromium.org/svn/trunk/tools/depot_tools/gclient_utils.py"""
     with open(filename, mode=mode) as f:
         s = f.read()
         try:
@@ -23,6 +32,7 @@ def FileRead(filename, mode='rU'):
 
 
 def cmd_wrapper(cmd):
+    """subprocess wrapper"""
     print("Command:", cmd)
     rc = subp.Popen(shlex.split(cmd)).wait()
     if rc != 0:
@@ -32,6 +42,7 @@ def cmd_wrapper(cmd):
 
 
 def main():
+    """main function"""
     parser = argparse.ArgumentParser()
     parser.add_argument('-C', "--directory", default='.')
     parser.add_argument('gclient_entries_file', help="'.gclient_entries' file")
@@ -46,11 +57,7 @@ def main():
 
         print("Get a cup of coffee. This will take some time.")
 
-        for dest, src in scope["entries"].items():
-            if dest == "src":
-                print("IGNORED:", src)
-                continue
-
+        for _, src in scope["entries"].items():
             if '@' in src:
                 repo = src.split('@')[0]  # TODO: check if second '@', e.g. git@...
             else:
@@ -71,7 +78,6 @@ def main():
                 subdir = os.path.join(*subdir)
                 if not os.path.isdir(subdir):
                     os.makedirs(subdir)
-                    pass
             else:
                 subdir = '.'
 
