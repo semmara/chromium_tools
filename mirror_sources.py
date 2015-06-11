@@ -4,7 +4,7 @@
 """
 Script to mirror chromium sources.
 No need to modify depot_tools.
-Only run the following commands to modify you global .gitconfig file:
+Run the following commands to modify your global '.gitconfig' file:
 $ git config --global "url.<path/to/mirrors/>.insteadOf" "https://chromium.googlesource.com/"
 $ git config --global --add "url.<path/to/mirrors/>.insteadOf" "https://chromium.googlesource.com/a/"
 Replace '<path/to/mirrors/>' with your path.
