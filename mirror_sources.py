@@ -17,6 +17,8 @@ import subprocess as subp
 import shlex
 import shutil
 from datetime import datetime
+import tempfile
+import xml.etree.cElementTree as ET
 
 __author__ = "Rainer Semma"
 
@@ -45,23 +47,31 @@ def main():
     """main function"""
     parser = argparse.ArgumentParser()
     parser.add_argument('-C', "--directory", default='.')
-    parser.add_argument('gclient_entries_file', help="'.gclient_entries' file")
     args = parser.parse_args()
 
     old_cwd = os.getcwd()
     try:
         os.chdir(args.directory)
 
-        scope = {}
-        exec(FileRead(args.gclient_entries_file), scope)
+        tmp_dir = tempfile.gettempdir()
+        if os.path.isdir(os.path.join(tmp_dir, "manifest")):
+            print("Existing 'manifest' found. Trying to update.")
+            mani_cmd = "git -C %s pull" % os.path.join(tmp_dir, "manifest")
+        else:
+            print("Downloading 'manifest' to temp folder.")
+            mani_cmd = "git -C %s clone https://chromium.googlesource.com/chromium/manifest.git" % tmp_dir
+        if cmd_wrapper(mani_cmd) != 0:
+            raise Exception("Error while downloading/updating 'manifest'")
+        mani_tree = ET.parse(os.path.join(tmp_dir, 'manifest', 'default.xml'))
+        mani_root = mani_tree.getroot()
+        entries = ["https://chromium.googlesource.com/"+proj.get("name") for proj in mani_root.iter('project')]
+        entries.append("https://chromium.googlesource.com/chromium/tools/depot_tools.git")
 
+        print()
         print("Get a cup of coffee. This will take some time.")
+        print()
 
-        for _, src in scope["entries"].items():
-            if '@' in src:
-                repo = src.split('@')[0]  # TODO: check if second '@', e.g. git@...
-            else:
-                repo = src
+        for repo in entries:
             print("repo:", repo)
             subdir_repo = repo.split('/')[3:]
             subdir_repo_path = os.path.join(*subdir_repo)
