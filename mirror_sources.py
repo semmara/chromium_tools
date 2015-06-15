@@ -65,13 +65,21 @@ def main():
         mani_tree = ET.parse(os.path.join(tmp_dir, 'manifest', 'default.xml'))
         mani_root = mani_tree.getroot()
         entries = ["https://chromium.googlesource.com/"+proj.get("name") for proj in mani_root.iter('project')]
+
         entries.append("https://chromium.googlesource.com/chromium/tools/depot_tools.git")
+        entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_mac.git")
+        entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_linux64.git")
+        entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_win.git")
+        entries.append("https://chromium.googlesource.com/chromium/deps/swig/mac.git")
+        entries.append("https://chromium.googlesource.com/chromium/deps/swig/win.git")
 
         print()
         print("Get a cup of coffee. This will take some time.")
         print()
 
         for repo in entries:
+            print()
+            print("-"*40)
             print("repo:", repo)
             subdir_repo = repo.split('/')[3:]
             subdir_repo_path = os.path.join(*subdir_repo)
