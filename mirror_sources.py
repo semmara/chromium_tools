@@ -67,11 +67,16 @@ def main():
         entries = ["https://chromium.googlesource.com/"+proj.get("name") for proj in mani_root.iter('project')]
 
         entries.append("https://chromium.googlesource.com/chromium/tools/depot_tools.git")
+
         entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_mac.git")
         entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_linux64.git")
         entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_win.git")
         entries.append("https://chromium.googlesource.com/chromium/deps/swig/mac.git")
         entries.append("https://chromium.googlesource.com/chromium/deps/swig/win.git")
+
+        entries.append("https://chromium.googlesource.com/chromium/buildtools.git")
+        entries.append("https://chromium.googlesource.com/chromium/deps/xz.git")
+        entries.append("https://chromium.googlesource.com/chromium/cdm.git")
 
         print()
         print("Get a cup of coffee. This will take some time.")
