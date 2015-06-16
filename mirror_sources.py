@@ -4,6 +4,8 @@
 """
 Script to mirror chromium sources.
 No need to modify depot_tools.
+Prevent reaching quota.
+
 Run the following commands to modify your global '.gitconfig' file:
 $ git config --global "url.<path/to/mirrors/>.insteadOf" "https://chromium.googlesource.com/"
 $ git config --global --add "url.<path/to/mirrors/>.insteadOf" "https://chromium.googlesource.com/a/"
@@ -17,20 +19,18 @@ import subprocess as subp
 import shlex
 import shutil
 from datetime import datetime
-import tempfile
 import xml.etree.cElementTree as ET
+import sys
+if sys.version_info[0] < 3:
+    from urllib import urlopen
+else:
+    from urllib.request import urlopen
+
 
 __author__ = "Rainer Semma"
-
-
-def FileRead(filename, mode='rU'):
-    """Source: http://src.chromium.org/svn/trunk/tools/depot_tools/gclient_utils.py"""
-    with open(filename, mode=mode) as f:
-        s = f.read()
-        try:
-            return s.decode('utf-8')
-        except UnicodeDecodeError:
-            return s
+__copyright__ = "Copyright (C) 2015 Rainer Semma"
+__license__ = "Chocolateware"  # dark ;)
+__version__ = "1.0"
 
 
 def cmd_wrapper(cmd):
@@ -45,39 +45,26 @@ def cmd_wrapper(cmd):
 
 def main():
     """main function"""
+
+    server = "https://chromium.googlesource.com/"
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-C', "--directory", default='.')
+    # TODO: parser.add_argument('-I', "--ignore", )
     args = parser.parse_args()
 
     old_cwd = os.getcwd()
     try:
         os.chdir(args.directory)
 
-        tmp_dir = tempfile.gettempdir()
-        if os.path.isdir(os.path.join(tmp_dir, "manifest")):
-            print("Existing 'manifest' found. Trying to update.")
-            mani_cmd = "git -C %s pull" % os.path.join(tmp_dir, "manifest")
-        else:
-            print("Downloading 'manifest' to temp folder.")
-            mani_cmd = "git -C %s clone https://chromium.googlesource.com/chromium/manifest.git" % tmp_dir
-        if cmd_wrapper(mani_cmd) != 0:
-            raise Exception("Error while downloading/updating 'manifest'")
-        mani_tree = ET.parse(os.path.join(tmp_dir, 'manifest', 'default.xml'))
-        mani_root = mani_tree.getroot()
-        entries = ["https://chromium.googlesource.com/"+proj.get("name") for proj in mani_root.iter('project')]
+        # read repos from web
+        url = "https://chromium.googlesource.com/"
+        with urlopen(url) as f:
+            webdata = f.read()
 
-        entries.append("https://chromium.googlesource.com/chromium/tools/depot_tools.git")
-
-        entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_mac.git")
-        entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_linux64.git")
-        entries.append("https://chromium.googlesource.com/chromium/reference_builds/chrome_win.git")
-        entries.append("https://chromium.googlesource.com/chromium/deps/swig/mac.git")
-        entries.append("https://chromium.googlesource.com/chromium/deps/swig/win.git")
-
-        entries.append("https://chromium.googlesource.com/chromium/buildtools.git")
-        entries.append("https://chromium.googlesource.com/chromium/deps/xz.git")
-        entries.append("https://chromium.googlesource.com/chromium/cdm.git")
-        entries.append("https://chromium.googlesource.com/chromium/canvas_bench.git")
+        # catch available repos
+        root = ET.fromstring(webdata)
+        entries = [server+a.text+".git" for a in root.findall(".//tr/td/a[0]") if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a.text)) == 0]
 
         print()
         print("Get a cup of coffee. This will take some time.")
@@ -85,7 +72,7 @@ def main():
 
         for repo in entries:
             print()
-            print("-"*40)
+            print("-"*60)
             print("repo:", repo)
             subdir_repo = repo.split('/')[3:]
             subdir_repo_path = os.path.join(*subdir_repo)
