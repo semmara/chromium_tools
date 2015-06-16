@@ -54,6 +54,10 @@ def main():
     # TODO: parser.add_argument('-I', "--ignore", )
     args = parser.parse_args()
 
+    print()
+    print("Get a cup of coffee. This will take some time.")
+    print()
+
     old_cwd = os.getcwd()
     try:
         os.chdir(args.directory)
@@ -65,11 +69,7 @@ def main():
 
         # catch available repos
         root = ET.fromstring(webdata)
-        entries = [server+a.text+".git" for a in root.findall(".//tr/td/a[0]") if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a.text)) == 0]
-
-        print()
-        print("Get a cup of coffee. This will take some time.")
-        print()
+        entries = [server+a.text+".git" for a in root.findall(".//tr/td/a[1]") if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a.text)) == 0]
 
         for repo in entries:
             print()
