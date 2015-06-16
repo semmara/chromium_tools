@@ -25,6 +25,7 @@ if sys.version_info[0] < 3:
     from urllib import urlopen
 else:
     from urllib.request import urlopen
+from contextlib import closing
 
 
 __author__ = "Rainer Semma"
@@ -59,7 +60,7 @@ def main():
 
         # read repos from web
         url = "https://chromium.googlesource.com/"
-        with urlopen(url) as f:
+        with closing(urlopen(url)) as f:
             webdata = f.read()
 
         # catch available repos
