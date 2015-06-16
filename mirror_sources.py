@@ -77,6 +77,7 @@ def main():
         entries.append("https://chromium.googlesource.com/chromium/buildtools.git")
         entries.append("https://chromium.googlesource.com/chromium/deps/xz.git")
         entries.append("https://chromium.googlesource.com/chromium/cdm.git")
+        entries.append("https://chromium.googlesource.com/chromium/canvas_bench.git")
 
         print()
         print("Get a cup of coffee. This will take some time.")
