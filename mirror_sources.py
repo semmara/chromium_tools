@@ -26,6 +26,7 @@ if sys.version_info[0] < 3:
 else:
     from urllib.request import urlopen
 from contextlib import closing
+import json
 
 
 __author__ = "Rainer Semma"
@@ -47,12 +48,17 @@ def cmd_wrapper(cmd):
 def main():
     """main function"""
 
+    # default/const values
     server = "https://chromium.googlesource.com/"
+    repo_list_fn = "repo_list.json"
 
+    # parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-C', "--directory", default='.')
+    parser.add_argument('-C', "--directory", help="change working directory", default='.')
     # TODO: parser.add_argument('-I', "--ignore", )
+    parser.add_argument("--repo_list_fn", help="filename for repository-list", type=str, default=repo_list_fn)
     args = parser.parse_args()
+    repo_list_fn = args.repo_list_fn
 
     print()
     print("Get a cup of coffee. This will take some time.")
@@ -71,6 +77,25 @@ def main():
         root = ET.fromstring(webdata)
         entries = [server+a.text+".git" for a in root.findall(".//tr/td/a[1]") if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a.text)) == 0]
 
+        # save catched repos to file
+        ent = {'entries':[{'repo':r} for r in entries]}
+        if os.path.isfile(os.path.join(os.getcwd(), repo_list_fn)):
+            with open(os.path.join(os.getcwd(), repo_list_fn), 'r') as f:
+                file_data = f.read()
+                try:
+                    j_data = json.loads(file_data)
+                    print("diff:", set(j_data) ^ set(ent))
+                    ent.update(j_data)
+                    print(ent)
+                except:
+                    pass
+        else:
+            print("no %s found" % repo_list_fn)
+        with open(os.path.join(os.getcwd(), repo_list_fn), 'w') as f:
+            json.dump(ent, f)
+        # TODO: use ent
+
+        # handling entries
         for repo in entries:
             print()
             print("-"*60)
