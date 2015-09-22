@@ -19,7 +19,7 @@ import subprocess as subp
 import shlex
 import shutil
 from datetime import datetime
-import xml.etree.cElementTree as ET
+from HTMLParser import HTMLParser
 import sys
 if sys.version_info[0] < 3:
     from urllib import urlopen
@@ -43,6 +43,16 @@ def cmd_wrapper(cmd):
         print("Error while running command.")
     print("Returncode:", rc)
     return rc
+
+
+
+class MyHTMLParser(HTMLParser):
+    links = []
+
+    def handle_starttag(self, tag, attrs):
+        d = dict(attrs)
+        if tag == "a" and "href" in d:
+            self.links.append(d["href"])
 
 
 def main():
@@ -74,8 +84,10 @@ def main():
             webdata = f.read()
 
         # catch available repos
-        root = ET.fromstring(webdata)
-        entries = [server+a.text+".git" for a in root.findall(".//tr/td/a[1]") if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a.text)) == 0]
+        hp = MyHTMLParser()
+        hp.feed(webdata)
+        hp.close()
+        entries = [server+a+".git" for a in hp.links if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a[1:-1])) == 0]
 
         # save catched repos to file
         ent = {'entries':[{'repo':r} for r in entries]}
