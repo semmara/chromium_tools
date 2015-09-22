@@ -87,7 +87,7 @@ def main():
         hp = MyHTMLParser()
         hp.feed(webdata)
         hp.close()
-        entries = [server+a+".git" for a in hp.links if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a[1:-1])) == 0]
+        entries = [server+a[1:-1]+".git" for a in hp.links if cmd_wrapper("git ls-remote --exit-code -h %s%s.git" % (server, a[1:-1])) == 0]
 
         # save catched repos to file
         ent = {'entries':[{'repo':r} for r in entries]}
